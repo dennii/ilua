@@ -48,7 +48,7 @@ setup(
     package_data={
         'ilua': [
             'interp.lua',
-            'lualibs/builtins.lua',
+            'builtins.lua',
             'lualibs/json.lua/json.lua',
             'lualibs/netstring.lua/netstring.lua',
             'lualibs/inspect.lua/inspect.lua',
@@ -59,6 +59,9 @@ setup(
         'console_scripts': [
             'ilua=ilua.consoleapp:main',
         ],
+        'ilua.preloaded_docs': [
+            'builtins=ilua:builtins_path'
+        ]
     },
 
     data_files=[

@@ -8,12 +8,20 @@
 local cmd_pipe_path = assert(os.getenv("ILUA_CMD_PATH"))
 local ret_pipe_path = assert(os.getenv("ILUA_RET_PATH"))
 local lib_path = assert(os.getenv("ILUA_LIB_PATH"))
+local docs_paths = assert(os.getenv("ILUA_DOCS_MODULES"))
 
 -- Windows supports / as dirsep
 local netstring = assert(dofile(lib_path .. "/netstring.lua/netstring.lua"))
 local json = assert(dofile(lib_path .. "/json.lua/json.lua"))
 local inspect = assert(dofile(lib_path .. "/inspect.lua/inspect.lua"))
-local builtins = assert(dofile(lib_path .. "/builtins.lua"))
+
+-- resolve docs
+local preloaded_docs = {}
+for path in docs_paths:gmatch("([^;]*);?") do
+    for key, val in pairs(dofile(path)) do
+        preloaded_docs[key] = val
+    end
+end
 
 -- Compatibility setup
 table.pack = table.pack or function (...)
@@ -137,11 +145,11 @@ local function handle_info(breadcrumbs)
         return false -- nil will be lost in json encoding
     else
         local info = debug.getinfo(subject_obj, "S")
-        local builtin_info = builtins[subject_obj]
-        if builtin_info then
+        local func_info = preloaded_docs[subject_obj]
+        if func_info then
             info.preloaded_info = true
-            info.func_signature = builtin_info['signature']
-            info.func_documentation = builtin_info['documentation']
+            info.func_signature = func_info['signature']
+            info.func_documentation = func_info['documentation']
         else
             info.preloaded_info = false
         end

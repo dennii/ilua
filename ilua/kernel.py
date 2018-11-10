@@ -13,6 +13,7 @@ import itertools
 import threading
 
 from distutils.spawn import find_executable
+from pkg_resources import iter_entry_points
 
 if os.name == 'nt':
     # pylint: disable=E0401
@@ -63,10 +64,17 @@ class ILuaKernel(KernelBase):
         def message_sink(stream, data):
             return self.send_update("stream", {"name": stream, "text": data})
         proto = OutputCapture(message_sink)
+
+        preloaded_docs_scripts = ";".join([
+            e.load()
+            for e in iter_entry_points("ilua.preloaded_docs")
+        ])
+
         os.environ.update({
             'ILUA_CMD_PATH': self.pipes.out_pipe.path,
             'ILUA_RET_PATH': self.pipes.in_pipe.path,
-            'ILUA_LIB_PATH': LUALIBS_PATH
+            'ILUA_LIB_PATH': LUALIBS_PATH,
+            'ILUA_DOCS_MODULES': preloaded_docs_scripts
         })
 
         assert find_executable(self.lua_interpreter), ("Could not find '{}', "
